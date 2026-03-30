@@ -1,9 +1,9 @@
 import { NextFunction, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import config from "../config"; // আপনার config/index.ts থেকে ইমপোর্ট হচ্ছে
+import config from "../config"; 
 
 const auth = (...roles: string[]) => {
-  // টাইপস্ক্রিপ্ট এরর এড়াতে 'req: any' ব্যবহার করা হয়েছে ✅
+
   return async (req: any, res: Response, next: NextFunction) => {
     try {
       let token = req.headers.authorization;
@@ -16,12 +16,11 @@ const auth = (...roles: string[]) => {
         });
       }
 
-      // ২. যদি টোকেন "Bearer <token>" ফরম্যাটে থাকে তবে শুধু টোকেনটুকু নেওয়া
+     
       if (token.startsWith("Bearer ")) {
         token = token.split(" ")[1];
       }
 
-      // ৩. টোকেন ভেরিফাই করা (config ফাইলে নাম jwt_access_secret হতে হবে)
       const decoded = jwt.verify(
         token,
         config.jwt_access_secret as string 
@@ -29,7 +28,7 @@ const auth = (...roles: string[]) => {
 
       const { role } = decoded;
 
-      // ৪. রোল চেক করার লজিক (যদি রাউটে রোল দেওয়া থাকে)
+     
       if (roles.length && !roles.includes(role)) {
         return res.status(403).json({
           success: false,
@@ -37,7 +36,7 @@ const auth = (...roles: string[]) => {
         });
       }
 
-      // ৫. রিকোয়েস্ট অবজেক্টে ইউজার সেট করা
+   
       req.user = decoded;
       next();
     } catch (error) {
@@ -49,5 +48,5 @@ const auth = (...roles: string[]) => {
   };
 };
 
-// এটি নিশ্চিত করবে যে অন্য ফাইলগুলো 'import auth from ...' হিসেবে এটি পাবে ✅
+
 export default auth;
