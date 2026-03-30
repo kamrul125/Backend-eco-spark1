@@ -72,7 +72,7 @@ model Idea {
   categoryId  String
   category    Category   @relation(fields: [categoryId], references: [id])
   
-  // onDelete: Cascade যোগ করা হয়েছে যাতে আইডিয়া ডিলিট হলে ভোট/কমেন্টও চলে যায়
+
   votes       Vote[]
   comments    Comment[]
   payments    Payment[]
@@ -83,7 +83,7 @@ model Idea {
   @@map("ideas")
 }
 
-// ৭. ভোটিং সিস্টেম মডেল (সংশোধিত) ✅
+
 model Vote {
   id     String   @id @default(uuid())
   type   VoteType 
@@ -97,12 +97,12 @@ model Vote {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // এটি নিশ্চিত করে এক ইউজার এক আইডিয়াতে একবারই ভোট দিতে পারবে
+ 
   @@unique([userId, ideaId]) 
   @@map("votes")
 }
 
-// ৮. কমেন্ট মডেল (রিপ্লাই সিস্টেমসহ)
+// ৮. কমেন্ট মডেল 
 model Comment {
   id        String    @id @default(uuid())
   content   String    
