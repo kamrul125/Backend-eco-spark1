@@ -1,5 +1,4 @@
-// @/ এর বদলে Relative Path ব্যবহার করা হয়েছে ✅
-// src/app/modules/auth/auth.service.ts ফাইলে এটি লিখুন: ✅
+
 import { prisma } from '../../../config/prisma'; 
 import { generateToken } from '../../../utils/jwt';
 import { hashPassword, comparePassword } from '../../../utils/bcrypt';
