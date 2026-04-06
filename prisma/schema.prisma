@@ -13,7 +13,13 @@ enum UserRole {
   MEMBER
 }
 
-// ২. আইডিয়া স্ট্যাটাস এনাম
+// ✅ ২. ইউজার স্ট্যাটাস এনাম (নতুন যোগ করা হয়েছে)
+enum UserStatus {
+  ACTIVATE
+  BLOCKED
+}
+
+// ৩. আইডিয়া স্ট্যাটাস এনাম
 enum IdeaStatus {
   DRAFT
   UNDER_REVIEW
@@ -21,32 +27,33 @@ enum IdeaStatus {
   REJECTED
 }
 
-// ৩. ভোট টাইপ এনাম
+// ৪. ভোট টাইপ এনাম
 enum VoteType {
   UPVOTE
   DOWNVOTE
 }
 
-// ৪. ইউজার মডেল
+// ৫. ইউজার মডেল
 model User {
-  id        String   @id @default(uuid())
+  id        String     @id @default(uuid())
   name      String
-  email     String   @unique
+  email     String     @unique
   password  String
-  role      UserRole @default(MEMBER)
+  role      UserRole   @default(MEMBER)
+  status    UserStatus @default(ACTIVATE) // ✅ স্ট্যাটাস ফিল্ড যোগ করা হয়েছে
   
   ideas     Idea[]
   votes     Vote[]
   comments  Comment[]
   payments  Payment[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 
   @@map("users")
 }
 
-// ৫. ক্যাটাগরি মডেল
+// ৬. ক্যাটাগরি মডেল
 model Category {
   id    String @id @default(uuid())
   name  String @unique
@@ -55,40 +62,38 @@ model Category {
   @@map("categories")
 }
 
-// ৬. আইডিয়া মডেল
+// ৭. আইডিয়া মডেল
 model Idea {
-  id          String     @id @default(uuid())
-  title       String
-  description String
+  id           String     @id @default(uuid())
+  title        String
+  description  String
   
-  image       String?    @default("https://images.unsplash.com/photo-1497215728101-856f4ea42174")
+  image        String?    @default("https://images.unsplash.com/photo-1497215728101-856f4ea42174")
 
-  status      IdeaStatus @default(DRAFT)
-  voteCount   Int        @default(0)
+  status       IdeaStatus @default(DRAFT)
+  voteCount    Int        @default(0)
+  commentCount Int        @default(0)
+
+  isPaid       Boolean    @default(false)
+  price        Float      @default(0) 
   
-  // ✅ এই ফিল্ডটি যোগ করা হয়েছে যাতে সার্ভিস ফাইলে এরর না আসে
-  commentCount Int       @default(0)
-
-  isPaid      Boolean    @default(false)
-  price       Float      @default(0) 
+  authorId     String
+  author       User       @relation(fields: [authorId], references: [id])
   
-  authorId    String
-  author      User       @relation(fields: [authorId], references: [id])
-  
-  categoryId  String
-  category    Category   @relation(fields: [categoryId], references: [id])
+  categoryId   String
+  category     Category   @relation(fields: [categoryId], references: [id])
 
-  votes       Vote[]
-  comments    Comment[]
-  payments    Payment[]
+  votes        Vote[]
+  comments     Comment[]
+  payments     Payment[]
 
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 
   @@map("ideas")
 }
 
-// ৭. ভোট মডেল
+// ৮. ভোট মডেল
 model Vote {
   id     String   @id @default(uuid())
   type   VoteType 
@@ -106,7 +111,7 @@ model Vote {
   @@map("votes")
 }
 
-// ৮. কমেন্ট মডেল 
+// ৯. কমেন্ট মডেল 
 model Comment {
   id        String    @id @default(uuid())
   content   String    
@@ -127,7 +132,7 @@ model Comment {
   @@map("comments")
 }
 
-// ৯. পেমেন্ট মডেল
+// ১০. পেমেন্ট মডেল
 model Payment {
   id            String   @id @default(uuid())
   transactionId String   @unique
