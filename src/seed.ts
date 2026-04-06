@@ -4,6 +4,7 @@ import * as bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 
 async function main() {
+  // ১. এডমিন ইউজার তৈরি বা আপডেট
   const hashedPassword = await bcrypt.hash('admin123456', 12);
 
   const admin = await prisma.user.upsert({
@@ -13,16 +14,37 @@ async function main() {
       email: 'admin@gmail.com',
       name: 'Admin',
       password: hashedPassword,
-      role: 'ADMIN', // আপনার এনামে যা আছে (ADMIN/Admin) সেটি দিন
+      role: 'ADMIN', // আপনার এনাম অনুযায়ী
     },
   });
 
-  console.log({ admin });
+  console.log('✅ Admin user created/verified:', admin.email);
+
+  // ২. ক্যাটাগরিগুলো তৈরি করা (যা স্টুডিওতে সেভ হচ্ছিল না)
+  const categories = [
+    { name: 'Waste' },
+    { name: 'Energy' },
+    { name: 'Transportation' },
+    { name: 'Sustainability' },
+    { name: 'Others' }
+  ];
+
+  console.log('⏳ Seeding categories...');
+
+  for (const cat of categories) {
+    await prisma.category.upsert({
+      where: { name: cat.name },
+      update: {},
+      create: cat,
+    });
+  }
+
+  console.log('✅ All 5 categories seeded successfully!');
 }
 
 main()
   .catch((e) => {
-    console.error(e);
+    console.error('❌ Seeding error:', e);
     process.exit(1);
   })
   .finally(async () => {

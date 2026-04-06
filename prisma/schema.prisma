@@ -55,17 +55,19 @@ model Category {
   @@map("categories")
 }
 
-// ৬. আইডিয়া মডেল (Updated with Image field)
+// ৬. আইডিয়া মডেল
 model Idea {
   id          String     @id @default(uuid())
   title       String
   description String
   
-  // ✅ ফ্রন্টএন্ড এরর ফিক্স করার জন্য ইমেজ ফিল্ড যোগ করা হয়েছে
   image       String?    @default("https://images.unsplash.com/photo-1497215728101-856f4ea42174")
 
   status      IdeaStatus @default(DRAFT)
   voteCount   Int        @default(0)
+  
+  // ✅ এই ফিল্ডটি যোগ করা হয়েছে যাতে সার্ভিস ফাইলে এরর না আসে
+  commentCount Int       @default(0)
 
   isPaid      Boolean    @default(false)
   price       Float      @default(0) 
