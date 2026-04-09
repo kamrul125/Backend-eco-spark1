@@ -7,7 +7,7 @@ export const createIdea = async (userId: string, data: any) => {
     data: { 
       ...data, 
       authorId: userId, 
-      status: "APPROVED" // বাই ডিফল্ট অ্যাপ্রুভড রাখা হয়েছে আপনার রিকোয়ারমেন্ট অনুযায়ী
+      status: "APPROVED" 
     },
   });
 };
@@ -52,7 +52,7 @@ export const getMyIdeas = async (userId: string) => {
   });
 };
 
-// ৪. আইডি দিয়ে আইডিয়া গেট করা
+// ৪. আইডি দিয়ে আইডিয়া গেট করা
 export const getIdeaById = async (id: string) => {
   return await prisma.idea.findUnique({ 
     where: { id }, 
@@ -60,19 +60,21 @@ export const getIdeaById = async (id: string) => {
       author: true, 
       category: true,
       comments: {
-        include: { user: true },
+        include: { 
+            user: true,
+        },
         orderBy: { createdAt: 'desc' }
       }
     } 
   });
 };
 
-// ৫. আইডিয়া আপডেট করা (নিশ্চিত করা হয়েছে যে শুধু নিজের আইডিয়া এডিট করা যাবে)
+// ৫. আইডিয়া আপডেট করা
 export const updateIdea = async (userId: string, ideaId: string, data: any) => {
   const idea = await prisma.idea.findFirst({
     where: { id: ideaId, authorId: userId },
   });
-  if (!idea) throw new Error("আপনি এই আইডিয়াটি এডিট করার অনুমতিপ্রাপ্ত নন!");
+  if (!idea) throw new Error("আপনি এই আইডিয়াটি এডিট করার অনুমতিপ্রাপ্ত নন!");
   
   return await prisma.idea.update({ where: { id: ideaId }, data });
 };
@@ -80,15 +82,15 @@ export const updateIdea = async (userId: string, ideaId: string, data: any) => {
 // ৬. আইডিয়া ডিলিট করা
 export const deleteIdea = async (userId: string, userRole: string, ideaId: string) => {
   const idea = await prisma.idea.findUnique({ where: { id: ideaId } });
-  if (!idea) throw new Error("আইডিয়াটি খুঁজে পাওয়া যায়নি!");
+  if (!idea) throw new Error("আইডিয়াটি খুঁজে পাওয়া যায়নি!");
   
   if (userRole !== 'ADMIN' && idea.authorId !== userId) {
-    throw new Error("আপনার এই আইডিয়াটি ডিলিট করার পারমিশন নেই!");
+    throw new Error("আপনার এই আইডিয়াটি ডিলিট করার পারমিশন নেই!");
   }
   return await prisma.idea.delete({ where: { id: ideaId } });
 };
 
-// ৭. ভোট হ্যান্ডেল করা (Upvote/Remove Vote)
+// ৭. ভোট হ্যান্ডেল করা
 export const toggleVote = async (userId: string, ideaId: string) => {
   const existingVote = await prisma.vote.findFirst({ where: { userId, ideaId } });
   
@@ -107,27 +109,28 @@ export const toggleVote = async (userId: string, ideaId: string) => {
   }
 };
 
-// ৮. কমেন্ট যোগ করা (সম্পূর্ণ ফিক্সড)
+// ৮. কমেন্ট এবং রিপ্লাই যোগ করা (সম্পূর্ণ আপডেট করা)
 export const addCommentIntoDB = async (ideaId: string, userId: string, commentData: any) => {
-  // ফ্রন্টএন্ড থেকে text বা content যেভাবেই আসুক, তা হ্যান্ডেল করবে
   const text = commentData.text || commentData.content;
+  const parentId = commentData.parentId || null; // যদি রিপ্লাই হয় তবে parentId থাকবে
   
   if (!text) {
-    throw new Error("কমেন্টে কিছু লেখা প্রয়োজন!");
+    throw new Error("কমেন্টে কিছু লেখা প্রয়োজন!");
   }
 
   const newComment = await prisma.comment.create({
     data: { 
       content: text, 
       ideaId: ideaId, 
-      userId: userId 
+      userId: userId,
+      parentId: parentId // ডাটাবেজে parentId সেভ হবে
     },
     include: {
       user: true 
     }
   });
 
-  // আইডিয়াতে কমেন্ট কাউন্ট আপডেট
+  // আইডিয়াতে কমেন্ট কাউন্ট বাড়ানো
   await prisma.idea.update({
     where: { id: ideaId },
     data: { commentCount: { increment: 1 } },
@@ -150,7 +153,6 @@ export const rejectIdea = async (ideaId: string, feedback: string) => {
     where: { id: ideaId },
     data: { 
       status: "REJECTED", 
-      // ডেসক্রিপশনে ফিডব্যাক যোগ করে দিচ্ছে অথবা আপনি আলাদা ফিল্ড থাকলে সেখানে দিতে পারেন
       description: { set: `Admin Feedback: ${feedback}` } as any 
     }
   });
